@@ -1,1 +1,1076 @@
-hlo
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Python Operators & Conditionals — Simulation</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',Roboto,sans-serif;
+    background:#0d0e12; color:#e6e7ea; padding:10px 14px;
+    height:100vh; overflow:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1 {
+    text-align:center; margin:0; font-size:14px; font-weight:600;
+    color:#e6e7ea; letter-spacing:-.01em;
+  }
+  .subtitle { text-align:center; color:#6b7280; margin:3px 0 10px; font-size:12px; }
+  .tabs { display:flex; flex-wrap:wrap; justify-content:center; gap:2px; margin-bottom:10px;
+    padding:3px; background:#141620; border:1px solid #1f2128; border-radius:7px; width:fit-content; margin-left:auto; margin-right:auto;
+  }
+  .tab {
+    padding:5px 12px; background:transparent; border:none; color:#8b8f99;
+    border-radius:5px; cursor:pointer; font-size:12px; font-weight:500;
+    transition:background .12s, color .12s; font-family:inherit;
+  }
+  .tab:hover { color:#e6e7ea; }
+  .tab.active { background:#1e2028; color:#e6e7ea; }
+
+  .panel { display:none; max-width:1500px; margin:0 auto; width:100%; height:calc(100vh - 110px); }
+  .panel.active { display:block; }
+  .layout { display:grid; grid-template-columns:1.3fr 1fr 320px; gap:10px; height:100%; }
+  .card {
+    background:#141620; border:1px solid #1f2128; border-radius:8px;
+    padding:12px 14px; overflow:hidden;
+    display:flex; flex-direction:column; height:100%;
+  }
+  .layout > .card:last-child { overflow-y:auto; }
+  .card h3 {
+    margin:0 0 8px 0; font-size:11px; font-weight:500;
+    color:#8b8f99; text-transform:uppercase; letter-spacing:.06em;
+  }
+  svg { width:100%; flex:1; min-height:0; display:block;
+    background:#0f1116; border:1px solid #1f2128; border-radius:6px;
+  }
+
+  .node rect, .node polygon, .node ellipse {
+    transition:fill .2s, stroke .2s, stroke-width .2s;
+    stroke-width:1.5;
+  }
+  .node.active rect, .node.active polygon, .node.active ellipse {
+    fill:#1e3a5f !important; stroke:#3b82f6 !important; stroke-width:2 !important;
+  }
+  .node.done rect, .node.done polygon, .node.done ellipse {
+    fill:#102d20 !important; stroke:#10b981 !important; stroke-width:1.5 !important;
+  }
+  .node text {
+    fill:#e6e7ea; font-size:12.5px; font-weight:500; pointer-events:none;
+    font-family:inherit; letter-spacing:.01em;
+  }
+  .edge {
+    stroke:#3a3d48; stroke-width:1.5; fill:none;
+    marker-end:url(#arrow); transition:stroke .2s, stroke-width .2s;
+    stroke-linecap:round; stroke-linejoin:round;
+  }
+  .edge.active { stroke:#3b82f6; stroke-width:2; marker-end:url(#arrow-a); }
+  .edge-label {
+    fill:#9ca3af; font-size:10.5px; font-weight:500; font-family:inherit;
+    paint-order: stroke; stroke:#0f1116; stroke-width:3; stroke-linejoin:round;
+  }
+
+  .controls { display:flex; gap:6px; margin-top:8px; flex-wrap:wrap; align-items:center; }
+  button.btn {
+    padding:6px 12px; background:#1e2028; color:#e6e7ea; border:1px solid #2a2d36;
+    border-radius:6px; cursor:pointer; font-size:12px; font-weight:500;
+    transition:background .12s, border-color .12s; font-family:inherit;
+  }
+  button.btn:hover { background:#262935; border-color:#363a46; }
+  button.btn.alt { background:#1e2028; color:#e6e7ea; }
+  button.btn.go { background:#3b82f6; border-color:#3b82f6; color:#fff; }
+  button.btn.go:hover { background:#2563eb; border-color:#2563eb; }
+  input[type=number], input[type=text] {
+    padding:5px 8px; background:#0f1116; color:#e6e7ea;
+    border:1px solid #2a2d36; border-radius:6px; font-size:12px; font-family:inherit;
+    transition:border-color .12s;
+  }
+  input[type=number]:focus, input[type=text]:focus { outline:none; border-color:#3b82f6; }
+  input[type=number] { width:70px; } input[type=text] { width:100px; }
+  select { padding:5px 8px; background:#0f1116; color:#e6e7ea; border:1px solid #2a2d36; border-radius:6px; font-size:12px; font-family:inherit; }
+  label { font-size:11px; color:#8b8f99; }
+  .vars { display:flex; gap:6px; flex-wrap:wrap; margin-top:6px; }
+  .var-box {
+    background:#0f1116; padding:5px 10px; border-radius:6px;
+    border:1px solid #2a2d36; min-width:55px; text-align:center;
+  }
+  .var-box .name { font-size:10px; color:#6b7280; text-transform:uppercase; letter-spacing:.04em; }
+  .var-box .val { font-size:14px; font-weight:600; color:#e6e7ea; font-variant-numeric:tabular-nums; }
+  .output {
+    background:#0f1116; padding:10px 12px; border-radius:6px; margin-top:6px;
+    font-family:ui-monospace,'SF Mono','Menlo',monospace; min-height:40px; max-height:130px;
+    overflow-y:auto; color:#a7f3d0; border:1px solid #1f2128; font-size:12.5px;
+    white-space:pre-wrap;
+  }
+  .status {
+    padding:7px 10px; border-radius:6px; margin-top:6px; font-size:12px;
+    background:#0f1116; border:1px solid #1f2128; border-left:2px solid #3b82f6;
+    color:#9ca3af;
+  }
+  .status.true { border-left-color:#10b981; }
+  .status.false { border-left-color:#ef4444; }
+
+  pre.code {
+    background:#0f1116; padding:10px 12px; border-radius:6px; margin:0;
+    font-family:ui-monospace,'SF Mono','Menlo',monospace; font-size:12.5px; line-height:1.65;
+    color:#d1d5db; border:1px solid #1f2128;
+    flex:1; min-height:0; overflow:auto;
+  }
+  .codeline { display:block; padding:1px 4px; border-left:2px solid transparent; margin-left:-4px; transition:background .15s, border-color .15s; }
+  .codeline.hl { background:#1e2028; border-left-color:#3b82f6; color:#e6e7ea; }
+  .codeline .kw { color:#c084fc; }
+  .codeline .fn { color:#60a5fa; }
+  .codeline .num { color:#fbbf24; }
+  .codeline .str { color:#86efac; }
+  .codeline .cm { color:#6b7280; font-style:italic; }
+
+  table.tbl { width:100%; border-collapse:collapse; font-size:12px; margin-top:6px; }
+  table.tbl th, table.tbl td { padding:6px 10px; border:1px solid #1f2128; text-align:center; }
+  table.tbl th { background:#1a1c24; color:#9ca3af; font-weight:500; text-transform:uppercase; letter-spacing:.04em; font-size:10px; }
+  table.tbl tr.hl td { background:#1e2028; color:#e6e7ea; }
+
+  .trace-step {
+    padding:7px 10px; margin:4px 0; background:#0f1116; border-radius:6px;
+    border:1px solid #1f2128; border-left:2px solid #2a2d36;
+    font-family:ui-monospace,'SF Mono',monospace; font-size:12px;
+    color:#6b7280; transition:border-color .15s, color .15s, background .15s;
+  }
+  .trace-step.active { border-left-color:#3b82f6; color:#e6e7ea; background:#141620; }
+  .trace-step.done { border-left-color:#10b981; color:#9ca3af; }
+  .trace-step .num {
+    display:inline-block; width:18px; height:18px; border-radius:50%; background:#1e2028;
+    text-align:center; line-height:18px; font-size:10px; margin-right:8px; color:#6b7280;
+    font-family:inherit;
+  }
+  .trace-step.active .num { background:#3b82f6; color:#fff; }
+  .trace-step.done .num { background:#10b981; color:#fff; }
+
+  .big-result {
+    margin-top:10px; padding:14px; background:#0f1116; border-radius:8px;
+    border:1px solid #1f2128; text-align:center;
+  }
+  .big-result .label { font-size:10px; color:#6b7280; text-transform:uppercase; letter-spacing:.06em; }
+  .big-result .val { font-size:22px; font-weight:600; color:#e6e7ea; margin-top:4px; font-family:ui-monospace,'SF Mono',monospace; font-variant-numeric:tabular-nums; }
+  .big-result.err { border-color:#ef4444; background:#1a0f11; }
+  .big-result.err .val { color:#ef4444; }
+  .big-result.tru .val { color:#10b981; }
+  .big-result.fls .val { color:#ef4444; }
+
+  .truth { display:grid; grid-template-columns:repeat(3,1fr); gap:3px; margin-top:6px; font-size:12px; }
+  .truth .cell { padding:6px; background:#0f1116; border-radius:4px; border:1px solid #1f2128; text-align:center; font-family:ui-monospace,'SF Mono',monospace; color:#9ca3af; }
+  .truth .cell.T { color:#10b981; }
+  .truth .cell.F { color:#ef4444; }
+  .truth .cell.hl { background:#1e2028; border-color:#3b82f6; color:#e6e7ea; }
+</style>
+</head>
+<body>
+
+<h1>Python Operators & Conditionals</h1>
+<p class="subtitle">Step-by-step evaluation of expressions and control flow</p>
+
+<div class="tabs">
+  <button class="tab active" data-tab="arith">Arithmetic</button>
+  <button class="tab" data-tab="comp">Comparison</button>
+  <button class="tab" data-tab="logic">Logical</button>
+  <button class="tab" data-tab="ifelse">if / else</button>
+  <button class="tab" data-tab="elif">if / elif / else</button>
+  <button class="tab" data-tab="grade">Grade Problem</button>
+  <button class="tab" data-tab="fizz">FizzBuzz</button>
+  <button class="tab" data-tab="nested">Nested if</button>
+</div>
+
+<svg width="0" height="0" style="position:absolute;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#3a3d48"/>
+    </marker>
+    <marker id="arrow-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#3b82f6"/>
+    </marker>
+  </defs>
+</svg>
+
+<!-- ================ ARITHMETIC ================ -->
+<div class="panel active" id="panel-arith">
+  <div class="layout">
+    <div class="card">
+      <h3>Code</h3>
+      <pre class="code"><span class="codeline">a = <span class="num" id="a-a">5</span></span><span class="codeline">b = <span class="num" id="a-b">2</span></span><span class="codeline">print(a <span id="a-op">+</span> b)</span></pre>
+      <h3 style="margin-top:10px;">Step-by-step trace</h3>
+      <div id="a-trace"></div>
+      <div class="big-result" id="a-big"><div class="label">result</div><div class="val" id="a-val">7</div><div class="label" id="a-type">int</div></div>
+    </div>
+    <div class="card">
+      <h3>Operator table</h3>
+      <table class="tbl" id="arith-tbl">
+        <tr><th>Op</th><th>Name</th><th>Example</th><th>Result</th></tr>
+        <tr data-op="+"><td>+</td><td>Add</td><td>5 + 2</td><td>7</td></tr>
+        <tr data-op="-"><td>-</td><td>Subtract</td><td>5 - 2</td><td>3</td></tr>
+        <tr data-op="*"><td>*</td><td>Multiply</td><td>5 * 2</td><td>10</td></tr>
+        <tr data-op="/"><td>/</td><td>Divide</td><td>5 / 2</td><td>2.5 (float)</td></tr>
+        <tr data-op="%"><td>%</td><td>Modulus</td><td>5 % 2</td><td>1</td></tr>
+        <tr data-op="//"><td>//</td><td>Floor</td><td>-3 // 2</td><td>-2</td></tr>
+        <tr data-op="**"><td>**</td><td>Power</td><td>2 ** 3</td><td>8</td></tr>
+      </table>
+      <div style="font-size:11px;color:#8b9fb3;margin-top:6px;">💡 <b>floor(x)</b> = largest integer ≤ x. floor(-1.5) = -2, not -1.</div>
+    </div>
+    <div class="card">
+      <h3>Your Input</h3>
+      <div class="controls">
+        <label>a</label><input type="text" id="a-in-a" value="5">
+        <select id="a-in-op">
+          <option>+</option><option>-</option><option>*</option><option>/</option>
+          <option>%</option><option>//</option><option>**</option>
+        </select>
+        <label>b</label><input type="text" id="a-in-b" value="2">
+      </div>
+      <div class="controls">
+        <button class="btn go" onclick="Arith.start()">▶ Auto</button>
+        <button class="btn alt" onclick="Arith.step()">Step</button>
+        <button class="btn" onclick="Arith.reset()">Reset</button>
+      </div>
+      <div class="status" id="a-status">Numbers, strings (use quotes), True/False.</div>
+      <h3 style="margin-top:10px;">Presets</h3>
+      <div class="controls">
+        <button class="btn alt" onclick="Arith.set('5','+','2')">5 + 2</button>
+        <button class="btn alt" onclick="Arith.set('3','/','2')">3 / 2</button>
+        <button class="btn alt" onclick="Arith.set('-3','//','2')">-3 // 2</button>
+        <button class="btn alt" onclick="Arith.set('2','**','3')">2 ** 3</button>
+        <button class="btn alt" onclick="Arith.set('2.5','+','True')">2.5 + True</button>
+        <button class="btn alt" onclick='Arith.set("&quot;Hi &quot;","*","3")'>"Hi " * 3</button>
+        <button class="btn alt" onclick='Arith.set("&quot;1&quot;","+","1")'>"1" + 1 ❌</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================ COMPARISON ================ -->
+<div class="panel" id="panel-comp">
+  <div class="layout">
+    <div class="card">
+      <h3>Code</h3>
+      <pre class="code"><span class="codeline">a = <span id="c-a">2</span></span><span class="codeline">b = <span id="c-b">3</span></span><span class="codeline">print(a <span id="c-op">==</span> b)</span></pre>
+      <h3 style="margin-top:10px;">Step-by-step trace</h3>
+      <div id="c-trace"></div>
+      <div class="big-result" id="c-big"><div class="label">returns bool</div><div class="val" id="c-val">False</div></div>
+    </div>
+    <div class="card">
+      <h3>Rules</h3>
+      <table class="tbl">
+        <tr><th>Case</th><th>Result</th></tr>
+        <tr><td>2 == 2.0</td><td><span style="color:#06d6a0">True</span> · int auto→float</td></tr>
+        <tr><td>2 == "2"</td><td><span style="color:#ef476f">False</span> · no str/num conv</td></tr>
+        <tr><td>2 == None</td><td><span style="color:#ef476f">False</span></td></tr>
+        <tr><td>False == 0</td><td><span style="color:#06d6a0">True</span> · bool is int</td></tr>
+        <tr><td>"ABC" != "abc"</td><td><span style="color:#06d6a0">True</span> · case-sensitive</td></tr>
+        <tr><td>2 &lt; "2"</td><td style="color:#ef476f">TypeError</td></tr>
+      </table>
+      <div style="font-size:11px;color:#8b9fb3;margin-top:8px;">💡 Comparison operators always return <b>bool</b> (or raise TypeError).</div>
+    </div>
+    <div class="card">
+      <h3>Your Input</h3>
+      <div class="controls">
+        <label>a</label><input type="text" id="c-in-a" value="2">
+        <select id="c-in-op">
+          <option>==</option><option>!=</option><option>&lt;</option><option>&gt;</option><option>&lt;=</option><option>&gt;=</option>
+        </select>
+        <label>b</label><input type="text" id="c-in-b" value="3">
+      </div>
+      <div class="controls">
+        <button class="btn go" onclick="Comp.start()">▶ Auto</button>
+        <button class="btn alt" onclick="Comp.step()">Step</button>
+        <button class="btn" onclick="Comp.reset()">Reset</button>
+      </div>
+      <div class="status" id="c-status">Ready.</div>
+      <h3 style="margin-top:10px;">Presets</h3>
+      <div class="controls">
+        <button class="btn alt" onclick="Comp.set('2','==','2.0')">2 == 2.0</button>
+        <button class="btn alt" onclick='Comp.set("2","==","&quot;2&quot;")'>2 == "2"</button>
+        <button class="btn alt" onclick="Comp.set('False','==','0')">False == 0</button>
+        <button class="btn alt" onclick="Comp.set('False','==','1')">False == 1</button>
+        <button class="btn alt" onclick='Comp.set("&quot;ABC&quot;","!=","&quot;abc&quot;")'>"ABC"!="abc"</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================ LOGICAL ================ -->
+<div class="panel" id="panel-logic">
+  <div class="layout">
+    <div class="card">
+      <h3>Code</h3>
+      <pre class="code"><span class="codeline">x = <span id="l-x">True</span></span><span class="codeline">y = <span id="l-y">False</span></span><span class="codeline">print(x <span id="l-op">and</span> y)</span></pre>
+      <h3 style="margin-top:10px;">Step-by-step trace</h3>
+      <div id="l-trace"></div>
+      <div class="big-result" id="l-big"><div class="label">result</div><div class="val" id="l-val">False</div></div>
+    </div>
+    <div class="card">
+      <h3>Truth Table (active cell lights up)</h3>
+      <h3 style="color:#ffd166;margin-top:4px;">AND</h3>
+      <div class="truth" id="truth-and">
+        <div class="cell" style="background:#2d3e50;color:#ffd166;"> </div>
+        <div class="cell" style="background:#2d3e50;">y=T</div>
+        <div class="cell" style="background:#2d3e50;">y=F</div>
+        <div class="cell" style="background:#2d3e50;">x=T</div>
+        <div class="cell T" data-xy="TT">T</div>
+        <div class="cell F" data-xy="TF">F</div>
+        <div class="cell" style="background:#2d3e50;">x=F</div>
+        <div class="cell F" data-xy="FT">F</div>
+        <div class="cell F" data-xy="FF">F</div>
+      </div>
+      <h3 style="color:#ffd166;margin-top:10px;">OR</h3>
+      <div class="truth" id="truth-or">
+        <div class="cell" style="background:#2d3e50;color:#ffd166;"> </div>
+        <div class="cell" style="background:#2d3e50;">y=T</div>
+        <div class="cell" style="background:#2d3e50;">y=F</div>
+        <div class="cell" style="background:#2d3e50;">x=T</div>
+        <div class="cell T" data-xy="TT">T</div>
+        <div class="cell T" data-xy="TF">T</div>
+        <div class="cell" style="background:#2d3e50;">x=F</div>
+        <div class="cell T" data-xy="FT">T</div>
+        <div class="cell F" data-xy="FF">F</div>
+      </div>
+      <h3 style="color:#ffd166;margin-top:10px;">NOT</h3>
+      <div style="font-family:'Courier New';font-size:12px; color:#8b9fb3;">not True → False &nbsp;&nbsp; not False → True</div>
+    </div>
+    <div class="card">
+      <h3>Your Input</h3>
+      <div class="controls">
+        <label>x</label><select id="l-in-x"><option>True</option><option>False</option></select>
+        <select id="l-in-op"><option>and</option><option>or</option></select>
+        <label>y</label><select id="l-in-y"><option>True</option><option>False</option></select>
+      </div>
+      <div class="controls">
+        <button class="btn go" onclick="Logic.start()">▶ Auto</button>
+        <button class="btn alt" onclick="Logic.step()">Step</button>
+        <button class="btn" onclick="Logic.reset()">Reset</button>
+      </div>
+      <h3 style="margin-top:10px;">NOT</h3>
+      <div class="controls">
+        <label>not</label>
+        <select id="l-not-x"><option>True</option><option>False</option></select>
+        <button class="btn alt" onclick="Logic.notRun()">▶</button>
+        <span id="l-not-val" style="color:#ffd166;font-weight:bold;font-size:16px;">False</span>
+      </div>
+      <h3 style="margin-top:10px;">Combined</h3>
+      <div class="controls">
+        <button class="btn alt" onclick="Logic.combo()">True and (not False)</button>
+      </div>
+      <div class="status" id="l-status">Ready.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ================ IF/ELSE ================ -->
+<div class="panel" id="panel-ifelse">
+  <div class="layout">
+    <div class="card">
+      <h3>Flowchart</h3>
+      <svg viewBox="0 0 600 500" id="svg-ie" preserveAspectRatio="xMidYMid meet">
+        <g class="node" id="ie-start"><ellipse cx="300" cy="30" rx="55" ry="20" fill="#1e3a5f" stroke="#3b82f6" stroke-width="2"/><text x="300" y="35" text-anchor="middle">START</text></g>
+        <g class="node" id="ie-cond"><polygon points="300,75 420,150 300,225 180,150" fill="#1a1c24" stroke="#2a2d36" stroke-width="2"/><text x="300" y="148" text-anchor="middle" font-size="12">if condition</text><text x="300" y="168" text-anchor="middle" fill="#9ca3af" font-size="13" id="ie-d-cond">a &lt; 18</text></g>
+        <g class="node" id="ie-if"><rect x="60" y="270" width="200" height="55" rx="10" fill="#1a1c24" stroke="#2a2d36" stroke-width="2"/><text x="160" y="290" text-anchor="middle" font-size="11">if block</text><text x="160" y="310" text-anchor="middle" fill="#9ca3af" font-size="12" id="ie-d-if">print("minor")</text></g>
+        <g class="node" id="ie-else"><rect x="340" y="270" width="200" height="55" rx="10" fill="#1a1c24" stroke="#2a2d36" stroke-width="2"/><text x="440" y="290" text-anchor="middle" font-size="11">else block</text><text x="440" y="310" text-anchor="middle" fill="#9ca3af" font-size="12" id="ie-d-else">print("adult")</text></g>
+        <g class="node" id="ie-after"><rect x="200" y="370" width="200" height="45" rx="10" fill="#1a1c24" stroke="#2a2d36" stroke-width="2"/><text x="300" y="397" text-anchor="middle" fill="#9ca3af">print("done")</text></g>
+        <g class="node" id="ie-end"><ellipse cx="300" cy="460" rx="55" ry="20" fill="#3f1e24" stroke="#ef4444" stroke-width="2"/><text x="300" y="465" text-anchor="middle">END</text></g>
+
+        <path class="edge" id="ie-e1" d="M 300 50 L 300 75"/>
+        <path class="edge" id="ie-e2" d="M 180 150 H 160 Q 150 150 150 160 V 260 Q 150 270 160 270"/>
+        <text class="edge-label" x="105" y="215">TRUE</text>
+        <path class="edge" id="ie-e3" d="M 420 150 H 440 Q 450 150 450 160 V 260 Q 450 270 440 270"/>
+        <text class="edge-label" x="460" y="215">FALSE</text>
+        <path class="edge" id="ie-e4" d="M 160 325 V 382 Q 160 392 170 392 L 200 392"/>
+        <path class="edge" id="ie-e5" d="M 440 325 V 382 Q 440 392 430 392 L 400 392"/>
+        <path class="edge" id="ie-e6" d="M 300 415 L 300 440"/>
+      </svg>
+    </div>
+    <div class="card">
+      <h3>Code</h3>
+      <pre class="code" id="code-ie"><span class="codeline" data-l="1">a = <span class="num" id="ie-a-val">15</span></span><span class="codeline" data-l="2"><span class="kw">if</span> a <span id="ie-cmp-val">&lt;</span> <span class="num" id="ie-thr-val">18</span>:</span><span class="codeline" data-l="3">    <span class="fn">print</span>(<span class="str" id="ie-if-val">"minor"</span>)</span><span class="codeline" data-l="4"><span class="kw">else</span>:</span><span class="codeline" data-l="5">    <span class="fn">print</span>(<span class="str" id="ie-else-val">"adult"</span>)</span><span class="codeline" data-l="6"><span class="fn">print</span>(<span class="str">"done"</span>)</span></pre>
+    </div>
+    <div class="card">
+      <h3>Your Input</h3>
+      <div class="controls">
+        <label>a</label><input type="number" id="ie-a" value="15">
+        <select id="ie-cmp">
+          <option value="lt">&lt;</option>
+          <option value="le">&lt;=</option>
+          <option value="gt">&gt;</option>
+          <option value="ge">&gt;=</option>
+          <option value="eq">==</option>
+          <option value="ne">!=</option>
+        </select>
+        <input type="number" id="ie-thr" value="18">
+      </div>
+      <div class="controls">
+        <label>if msg</label><input type="text" id="ie-ifmsg" value="minor" style="width:90px;">
+        <label>else msg</label><input type="text" id="ie-elsemsg" value="adult" style="width:90px;">
+      </div>
+      <div class="controls">
+        <button class="btn go" onclick="IE.start()">▶ Auto</button>
+        <button class="btn alt" onclick="IE.step()">Step</button>
+        <button class="btn" onclick="IE.reset()">Reset</button>
+      </div>
+      <div class="vars" id="vars-ie"></div>
+      <div class="status" id="status-ie">Ready.</div>
+      <h3 style="margin-top:10px;">Output</h3>
+      <div class="output" id="out-ie"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ================ IF/ELIF/ELSE ================ -->
+<div class="panel" id="panel-elif">
+  <div class="layout">
+    <div class="card">
+      <h3>Weather flowchart</h3>
+      <svg viewBox="0 0 620 620" id="svg-el" preserveAspectRatio="xMidYMid meet">
+        <g class="node" id="el-start"><ellipse cx="240" cy="30" rx="55" ry="20" fill="#1e3a5f" stroke="#3b82f6" stroke-width="2"/><text x="240" y="35" text-anchor="middle">START</text></g>
+        <g class="node" id="el-c1"><polygon points="240,70 350,130 240,190 130,130" fill="#1a1c24" stroke="#2a2d36" stroke-width="2"/><text x="240" y="135" text-anchor="middle" fill="#9ca3af" font-size="12">=="Sunny"?</text></g>
+        <g class="node" id="el-c2"><polygon points="240,210 350,270 240,330 130,270" fill="#1a1c24" stroke="#2a2d36" stroke-width="2"/><text x="240" y="275" text-anchor="middle" fill="#9ca3af" font-size="12">=="Rainy"?</text></g>
+        <g class="node" id="el-c3"><polygon points="240,350 350,410 240,470 130,410" fill="#1a1c24" stroke="#2a2d36" stroke-width="2"/><text x="240" y="415" text-anchor="middle" fill="#9ca3af" font-size="12">=="Snowy"?</text></g>
+
+        <g class="node" id="el-a1"><rect x="400" y="105" width="150" height="50" rx="10" fill="#06d6a033" stroke="#06d6a0" stroke-width="2"/><text x="475" y="125" text-anchor="middle" font-size="11">print</text><text x="475" y="143" text-anchor="middle" fill="#10b981" font-size="11">"Take Googles"</text></g>
+        <g class="node" id="el-a2"><rect x="400" y="245" width="150" height="50" rx="10" fill="#06d6a033" stroke="#06d6a0" stroke-width="2"/><text x="475" y="265" text-anchor="middle" font-size="11">print</text><text x="475" y="283" text-anchor="middle" fill="#10b981" font-size="11">"Take Umbrella"</text></g>
+        <g class="node" id="el-a3"><rect x="400" y="385" width="150" height="50" rx="10" fill="#06d6a033" stroke="#06d6a0" stroke-width="2"/><text x="475" y="405" text-anchor="middle" font-size="11">print</text><text x="475" y="423" text-anchor="middle" fill="#10b981" font-size="11">"wear boots"</text></g>
+        <g class="node" id="el-a4"><rect x="100" y="490" width="280" height="50" rx="10" fill="#ffd16622" stroke="#ffd166" stroke-width="2"/><text x="240" y="510" text-anchor="middle" font-size="11">else print</text><text x="240" y="528" text-anchor="middle" fill="#9ca3af" font-size="11">"I dont know this weather"</text></g>
+
+        <g class="node" id="el-after"><rect x="170" y="565" width="200" height="42" rx="10" fill="#1a1c24" stroke="#2a2d36" stroke-width="2"/><text x="270" y="590" text-anchor="middle" fill="#9ca3af" font-size="12">print("normal execution")</text></g>
+
+        <path class="edge" id="el-e1" d="M 240 50 L 240 70"/>
+        <path class="edge" id="el-t1" d="M 350 130 L 400 130"/><text class="edge-label" x="358" y="122">TRUE</text>
+        <path class="edge" id="el-f1" d="M 240 190 L 240 210"/><text class="edge-label" x="248" y="205">FALSE</text>
+        <path class="edge" id="el-t2" d="M 350 270 L 400 270"/><text class="edge-label" x="358" y="262">TRUE</text>
+        <path class="edge" id="el-f2" d="M 240 330 L 240 350"/><text class="edge-label" x="248" y="345">FALSE</text>
+        <path class="edge" id="el-t3" d="M 350 410 L 400 410"/><text class="edge-label" x="358" y="402">TRUE</text>
+        <path class="edge" id="el-f3" d="M 240 470 L 240 490"/><text class="edge-label" x="248" y="485">FALSE</text>
+
+        <!-- Each action → after (its own complete path) -->
+        <path class="edge" id="el-r1" d="M 550 130 H 585 Q 600 130 600 145 V 572 Q 600 586 586 586 H 370"/>
+        <path class="edge" id="el-r2" d="M 550 270 H 585 Q 600 270 600 285 V 572 Q 600 586 586 586 H 370"/>
+        <path class="edge" id="el-r3" d="M 550 410 H 585 Q 600 410 600 425 V 572 Q 600 586 586 586 H 370"/>
+        <path class="edge" id="el-r4" d="M 240 540 L 240 565"/>
+      </svg>
+    </div>
+    <div class="card">
+      <h3>Code</h3>
+      <pre class="code" id="code-el"><span class="codeline" data-l="1">weather = <span class="str" id="el-in-val">"Sunny"</span></span><span class="codeline" data-l="2"><span class="kw">if</span> weather == <span class="str">"Sunny"</span>:</span><span class="codeline" data-l="3">    <span class="fn">print</span>(<span class="str">"Take Googles"</span>)</span><span class="codeline" data-l="4"><span class="kw">elif</span> weather == <span class="str">"Rainy"</span>:</span><span class="codeline" data-l="5">    <span class="fn">print</span>(<span class="str">"Take Umbrella"</span>)</span><span class="codeline" data-l="6"><span class="kw">elif</span> weather == <span class="str">"Snowy"</span>:</span><span class="codeline" data-l="7">    <span class="fn">print</span>(<span class="str">"wear boots"</span>)</span><span class="codeline" data-l="8"><span class="kw">else</span>:</span><span class="codeline" data-l="9">    <span class="fn">print</span>(<span class="str">"I dont know this weather"</span>)</span><span class="codeline" data-l="10"><span class="fn">print</span>(<span class="str">"normal execution"</span>)</span></pre>
+    </div>
+    <div class="card">
+      <h3>Your Input</h3>
+      <div class="controls">
+        <label>weather</label>
+        <select id="el-in">
+          <option>Sunny</option><option>Rainy</option><option>Snowy</option><option>Mist</option>
+        </select>
+      </div>
+      <div class="controls">
+        <button class="btn go" onclick="EL.start()">▶ Auto</button>
+        <button class="btn alt" onclick="EL.step()">Step</button>
+        <button class="btn" onclick="EL.reset()">Reset</button>
+      </div>
+      <div class="status" id="status-el">Ready.</div>
+      <h3 style="margin-top:10px;">Output</h3>
+      <div class="output" id="out-el"></div>
+      <div style="font-size:11px;color:#8b9fb3;margin-top:6px;">💡 Once a branch matches, remaining elifs are <b>skipped</b>.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ================ GRADE ================ -->
+<div class="panel" id="panel-grade">
+  <div class="layout">
+    <div class="card">
+      <h3>Grade flowchart</h3>
+      <svg viewBox="0 0 620 640" id="svg-g" preserveAspectRatio="xMidYMid meet">
+        <g class="node" id="g-start"><ellipse cx="240" cy="25" rx="50" ry="18" fill="#1e3a5f" stroke="#3b82f6" stroke-width="2"/><text x="240" y="30" text-anchor="middle">START</text></g>
+        <g class="node" id="g-c1"><polygon points="240,55 360,115 240,175 120,115" fill="#1a1c24" stroke="#2a2d36" stroke-width="2"/><text x="240" y="120" text-anchor="middle" fill="#9ca3af" font-size="11">90&lt;marks≤100?</text></g>
+        <g class="node" id="g-c2"><polygon points="240,195 360,255 240,315 120,255" fill="#1a1c24" stroke="#2a2d36" stroke-width="2"/><text x="240" y="260" text-anchor="middle" fill="#9ca3af" font-size="11">80&lt;marks≤90?</text></g>
+        <g class="node" id="g-c3"><polygon points="240,335 360,395 240,455 120,395" fill="#1a1c24" stroke="#2a2d36" stroke-width="2"/><text x="240" y="400" text-anchor="middle" fill="#9ca3af" font-size="11">70&lt;marks≤80?</text></g>
+        <g class="node" id="g-c4"><polygon points="240,475 360,535 240,595 120,535" fill="#1a1c24" stroke="#2a2d36" stroke-width="2"/><text x="240" y="540" text-anchor="middle" fill="#9ca3af" font-size="11">0≤marks≤70?</text></g>
+
+        <g class="node" id="g-a1"><rect x="410" y="90" width="130" height="50" rx="10" fill="#06d6a033" stroke="#06d6a0" stroke-width="2"/><text x="475" y="120" text-anchor="middle" fill="#10b981" font-weight="bold">Grade: A</text></g>
+        <g class="node" id="g-a2"><rect x="410" y="230" width="130" height="50" rx="10" fill="#06d6a033" stroke="#06d6a0" stroke-width="2"/><text x="475" y="260" text-anchor="middle" fill="#10b981" font-weight="bold">Grade: B</text></g>
+        <g class="node" id="g-a3"><rect x="410" y="370" width="130" height="50" rx="10" fill="#06d6a033" stroke="#06d6a0" stroke-width="2"/><text x="475" y="400" text-anchor="middle" fill="#10b981" font-weight="bold">Grade: C</text></g>
+        <g class="node" id="g-a4"><rect x="410" y="510" width="130" height="50" rx="10" fill="#06d6a033" stroke="#06d6a0" stroke-width="2"/><text x="475" y="540" text-anchor="middle" fill="#10b981" font-weight="bold">Grade: D</text></g>
+        <g class="node" id="g-inv"><rect x="0" y="510" width="110" height="50" rx="10" fill="#ef476f33" stroke="#ef476f" stroke-width="2"/><text x="55" y="540" text-anchor="middle" fill="#ef476f" font-weight="bold">Invalid</text></g>
+
+        <g class="node" id="g-end"><ellipse cx="300" cy="620" rx="50" ry="18" fill="#3f1e24" stroke="#ef4444" stroke-width="2"/><text x="300" y="625" text-anchor="middle">END</text></g>
+
+        <path class="edge" id="g-e0" d="M 240 43 L 240 55"/>
+        <path class="edge" id="g-t1" d="M 360 115 L 410 115"/><text class="edge-label" x="368" y="108">T</text>
+        <path class="edge" id="g-f1" d="M 240 175 L 240 195"/><text class="edge-label" x="248" y="190">F</text>
+        <path class="edge" id="g-t2" d="M 360 255 L 410 255"/><text class="edge-label" x="368" y="248">T</text>
+        <path class="edge" id="g-f2" d="M 240 315 L 240 335"/><text class="edge-label" x="248" y="330">F</text>
+        <path class="edge" id="g-t3" d="M 360 395 L 410 395"/><text class="edge-label" x="368" y="388">T</text>
+        <path class="edge" id="g-f3" d="M 240 455 L 240 475"/><text class="edge-label" x="248" y="470">F</text>
+        <path class="edge" id="g-t4" d="M 360 535 L 410 535"/><text class="edge-label" x="368" y="528">T</text>
+        <path class="edge" id="g-f4" d="M 120 535 L 110 535"/><text class="edge-label" x="118" y="528">F (else)</text>
+
+        <!-- Each action → END (own full path via far-right rail) -->
+        <path class="edge" id="g-r1" d="M 540 115 H 585 Q 600 115 600 130 V 605 Q 600 620 585 620 H 350"/>
+        <path class="edge" id="g-r2" d="M 540 255 H 585 Q 600 255 600 270 V 605 Q 600 620 585 620 H 350"/>
+        <path class="edge" id="g-r3" d="M 540 395 H 585 Q 600 395 600 410 V 605 Q 600 620 585 620 H 350"/>
+        <path class="edge" id="g-r4" d="M 540 535 H 585 Q 600 535 600 550 V 605 Q 600 620 585 620 H 350"/>
+        <!-- invalid → END via bottom left rail -->
+        <path class="edge" id="g-r5" d="M 55 560 V 605 Q 55 620 70 620 H 250"/>
+      </svg>
+    </div>
+    <div class="card">
+      <h3>Code</h3>
+      <pre class="code" id="code-g"><span class="codeline" data-l="1">marks = <span class="num" id="g-m-val">85</span></span><span class="codeline" data-l="2"><span class="kw">if</span> marks &gt; <span class="num">90</span> <span class="kw">and</span> marks &lt;= <span class="num">100</span>:</span><span class="codeline" data-l="3">    <span class="fn">print</span>(<span class="str">"Grade: A"</span>)</span><span class="codeline" data-l="4"><span class="kw">elif</span> marks &gt; <span class="num">80</span> <span class="kw">and</span> marks &lt;= <span class="num">90</span>:</span><span class="codeline" data-l="5">    <span class="fn">print</span>(<span class="str">"Grade: B"</span>)</span><span class="codeline" data-l="6"><span class="kw">elif</span> marks &gt; <span class="num">70</span> <span class="kw">and</span> marks &lt;= <span class="num">80</span>:</span><span class="codeline" data-l="7">    <span class="fn">print</span>(<span class="str">"Grade: C"</span>)</span><span class="codeline" data-l="8"><span class="kw">elif</span> marks &gt;= <span class="num">0</span> <span class="kw">and</span> marks &lt;= <span class="num">70</span>:</span><span class="codeline" data-l="9">    <span class="fn">print</span>(<span class="str">"Grade: D"</span>)</span><span class="codeline" data-l="10"><span class="kw">else</span>:</span><span class="codeline" data-l="11">    <span class="fn">print</span>(<span class="str">"Invalid marks"</span>)</span></pre>
+    </div>
+    <div class="card">
+      <h3>Your Input</h3>
+      <div class="controls">
+        <label>marks</label><input type="number" id="g-m" value="85">
+      </div>
+      <div class="controls">
+        <button class="btn go" onclick="G.start()">▶ Auto</button>
+        <button class="btn alt" onclick="G.step()">Step</button>
+        <button class="btn" onclick="G.reset()">Reset</button>
+      </div>
+      <div class="controls">
+        <button class="btn alt" onclick="G.preset(95)">95</button>
+        <button class="btn alt" onclick="G.preset(85)">85</button>
+        <button class="btn alt" onclick="G.preset(75)">75</button>
+        <button class="btn alt" onclick="G.preset(55)">55</button>
+        <button class="btn alt" onclick="G.preset(120)">120</button>
+      </div>
+      <div class="status" id="status-g">Ready.</div>
+      <h3 style="margin-top:10px;">Output</h3>
+      <div class="output" id="out-g"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ================ FIZZBUZZ ================ -->
+<div class="panel" id="panel-fizz">
+  <div class="layout">
+    <div class="card">
+      <h3>FizzBuzz flowchart</h3>
+      <svg viewBox="0 0 620 560" id="svg-fz" preserveAspectRatio="xMidYMid meet">
+        <g class="node" id="fz-start"><ellipse cx="240" cy="30" rx="50" ry="18" fill="#1e3a5f" stroke="#3b82f6" stroke-width="2"/><text x="240" y="35" text-anchor="middle">START</text></g>
+        <g class="node" id="fz-c1"><polygon points="240,60 390,140 240,220 90,140" fill="#1a1c24" stroke="#2a2d36" stroke-width="2"/><text x="240" y="138" text-anchor="middle" fill="#9ca3af" font-size="11">a%3==0 AND</text><text x="240" y="156" text-anchor="middle" fill="#9ca3af" font-size="11">a%5==0 ?</text></g>
+        <g class="node" id="fz-c2"><polygon points="240,245 350,300 240,355 130,300" fill="#1a1c24" stroke="#2a2d36" stroke-width="2"/><text x="240" y="305" text-anchor="middle" fill="#9ca3af" font-size="12">a%3==0 ?</text></g>
+        <g class="node" id="fz-c3"><polygon points="240,380 350,430 240,480 150,430" fill="#1a1c24" stroke="#2a2d36" stroke-width="2"/><text x="240" y="435" text-anchor="middle" fill="#9ca3af" font-size="12">a%5==0 ?</text></g>
+
+        <g class="node" id="fz-fb"><rect x="420" y="115" width="130" height="50" rx="10" fill="#06d6a033" stroke="#06d6a0" stroke-width="2"/><text x="485" y="145" text-anchor="middle" fill="#10b981" font-weight="bold">Fizz-Buzz</text></g>
+        <g class="node" id="fz-f"><rect x="400" y="275" width="130" height="50" rx="10" fill="#06d6a033" stroke="#06d6a0" stroke-width="2"/><text x="465" y="305" text-anchor="middle" fill="#10b981" font-weight="bold">Fizz</text></g>
+        <g class="node" id="fz-b"><rect x="400" y="405" width="130" height="50" rx="10" fill="#06d6a033" stroke="#06d6a0" stroke-width="2"/><text x="465" y="435" text-anchor="middle" fill="#10b981" font-weight="bold">Buzz</text></g>
+        <g class="node" id="fz-none"><rect x="0" y="405" width="130" height="50" rx="10" fill="#8b9fb322" stroke="#8b9fb3" stroke-width="2"/><text x="65" y="435" text-anchor="middle" fill="#8b9fb3">(nothing)</text></g>
+
+        <g class="node" id="fz-end"><ellipse cx="300" cy="530" rx="50" ry="18" fill="#3f1e24" stroke="#ef4444" stroke-width="2"/><text x="300" y="535" text-anchor="middle">END</text></g>
+
+        <path class="edge" id="fz-e0" d="M 240 48 L 240 60"/>
+        <path class="edge" id="fz-t1" d="M 390 140 L 420 140"/><text class="edge-label" x="395" y="132">T</text>
+        <path class="edge" id="fz-f1" d="M 240 220 L 240 245"/><text class="edge-label" x="248" y="240">F</text>
+        <path class="edge" id="fz-t2" d="M 350 300 L 400 300"/><text class="edge-label" x="358" y="292">T</text>
+        <path class="edge" id="fz-f2" d="M 240 355 L 240 380"/><text class="edge-label" x="248" y="375">F</text>
+        <path class="edge" id="fz-t3" d="M 350 430 L 400 430"/><text class="edge-label" x="358" y="422">T</text>
+        <path class="edge" id="fz-f3" d="M 150 430 L 130 430"/><text class="edge-label" x="133" y="422">F</text>
+
+        <!-- Each action → END (own full path) -->
+        <path class="edge" id="fz-r1" d="M 550 140 H 585 Q 600 140 600 155 V 515 Q 600 530 585 530 H 350"/>
+        <path class="edge" id="fz-r2" d="M 530 300 H 585 Q 600 300 600 315 V 515 Q 600 530 585 530 H 350"/>
+        <path class="edge" id="fz-r3" d="M 530 430 H 585 Q 600 430 600 445 V 515 Q 600 530 585 530 H 350"/>
+        <!-- none → END via left-bottom rail -->
+        <path class="edge" id="fz-r4" d="M 65 455 V 515 Q 65 530 80 530 H 250"/>
+      </svg>
+    </div>
+    <div class="card">
+      <h3>Code</h3>
+      <pre class="code" id="code-fz"><span class="codeline" data-l="1">a = <span class="num" id="fz-a-val">15</span></span><span class="codeline" data-l="2"><span class="kw">if</span> a%<span class="num" id="fz-d1-val">3</span>==<span class="num">0</span> <span class="kw">and</span> a%<span class="num" id="fz-d2-val">5</span>==<span class="num">0</span>:</span><span class="codeline" data-l="3">    <span class="fn">print</span>(<span class="str">'Fizz-Buzz'</span>)</span><span class="codeline" data-l="4"><span class="kw">elif</span> a%<span class="num" id="fz-d1b-val">3</span>==<span class="num">0</span>:</span><span class="codeline" data-l="5">    <span class="fn">print</span>(<span class="str">'Fizz'</span>)</span><span class="codeline" data-l="6"><span class="kw">elif</span> a%<span class="num" id="fz-d2b-val">5</span>==<span class="num">0</span>:</span><span class="codeline" data-l="7">    <span class="fn">print</span>(<span class="str">'Buzz'</span>)</span></pre>
+    </div>
+    <div class="card">
+      <h3>Your Input</h3>
+      <div class="controls">
+        <label>a</label><input type="number" id="fz-a" value="15">
+        <label>d1</label><input type="number" id="fz-d1" value="3" min="1">
+        <label>d2</label><input type="number" id="fz-d2" value="5" min="1">
+      </div>
+      <div class="controls">
+        <button class="btn go" onclick="FZ.start()">▶ Auto</button>
+        <button class="btn alt" onclick="FZ.step()">Step</button>
+        <button class="btn" onclick="FZ.reset()">Reset</button>
+      </div>
+      <div class="controls">
+        <button class="btn alt" onclick="FZ.preset(15)">15</button>
+        <button class="btn alt" onclick="FZ.preset(9)">9</button>
+        <button class="btn alt" onclick="FZ.preset(10)">10</button>
+        <button class="btn alt" onclick="FZ.preset(7)">7</button>
+      </div>
+      <div class="status" id="status-fz">Ready.</div>
+      <h3 style="margin-top:10px;">Output</h3>
+      <div class="output" id="out-fz"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ================ NESTED IF ================ -->
+<div class="panel" id="panel-nested">
+  <div class="layout">
+    <div class="card">
+      <h3>Nested if flowchart</h3>
+      <svg viewBox="0 0 620 540" id="svg-ni" preserveAspectRatio="xMidYMid meet">
+        <g class="node" id="ni-start"><ellipse cx="300" cy="30" rx="50" ry="18" fill="#1e3a5f" stroke="#3b82f6" stroke-width="2"/><text x="300" y="35" text-anchor="middle">START</text></g>
+        <g class="node" id="ni-c1"><polygon points="300,70 420,140 300,210 180,140" fill="#1a1c24" stroke="#2a2d36" stroke-width="2"/><text x="300" y="138" text-anchor="middle" font-size="11">outer</text><text x="300" y="156" text-anchor="middle" fill="#9ca3af" font-size="12">Male?</text></g>
+        <g class="node" id="ni-c2"><polygon points="180,260 300,320 180,380 60,320" fill="#1a1c24" stroke="#2a2d36" stroke-width="2"/><text x="180" y="318" text-anchor="middle" font-size="11">inner</text><text x="180" y="336" text-anchor="middle" fill="#9ca3af" font-size="12">Good?</text></g>
+
+        <g class="node" id="ni-a1"><rect x="30" y="420" width="160" height="55" rx="10" fill="#06d6a033" stroke="#06d6a0" stroke-width="2"/><text x="110" y="440" text-anchor="middle" fill="#10b981" font-size="11">character =</text><text x="110" y="460" text-anchor="middle" fill="#10b981" font-weight="bold">Chota Bheem</text></g>
+        <g class="node" id="ni-a2"><rect x="230" y="420" width="160" height="55" rx="10" fill="#06d6a033" stroke="#06d6a0" stroke-width="2"/><text x="310" y="440" text-anchor="middle" fill="#10b981" font-size="11">character =</text><text x="310" y="460" text-anchor="middle" fill="#10b981" font-weight="bold">Kaliya</text></g>
+        <g class="node" id="ni-a3"><rect x="440" y="110" width="160" height="55" rx="10" fill="#06d6a033" stroke="#06d6a0" stroke-width="2"/><text x="520" y="130" text-anchor="middle" fill="#10b981" font-size="11">character =</text><text x="520" y="150" text-anchor="middle" fill="#10b981" font-weight="bold">Chutki</text></g>
+
+        <g class="node" id="ni-end"><ellipse cx="310" cy="515" rx="50" ry="18" fill="#3f1e24" stroke="#ef4444" stroke-width="2"/><text x="310" y="520" text-anchor="middle">END</text></g>
+
+        <path class="edge" id="ni-e0" d="M 300 48 L 300 70"/>
+        <path class="edge" id="ni-e1" d="M 240 175 H 220 Q 210 175 210 185 V 250 Q 210 260 200 260"/>
+        <text class="edge-label" x="150" y="220">YES</text>
+        <path class="edge" id="ni-e2" d="M 420 140 L 440 138"/><text class="edge-label" x="425" y="130">NO</text>
+        <path class="edge" id="ni-e3" d="M 140 360 V 405 Q 140 420 125 420 H 110"/><text class="edge-label" x="95" y="395">YES</text>
+        <path class="edge" id="ni-e4" d="M 220 360 V 405 Q 220 420 235 420 H 310"/><text class="edge-label" x="260" y="395">NO</text>
+
+        <!-- Each action → END (own path) -->
+        <path class="edge" id="ni-r1" d="M 110 475 V 500 Q 110 515 125 515 H 260"/>
+        <path class="edge" id="ni-r2" d="M 310 475 V 497"/>
+        <path class="edge" id="ni-r3" d="M 520 165 V 200 Q 520 215 535 215 H 595 Q 610 215 610 230 V 500 Q 610 515 595 515 H 360"/>
+      </svg>
+    </div>
+    <div class="card">
+      <h3>Code</h3>
+      <pre class="code" id="code-ni"><span class="codeline" data-l="1">a = <span class="str" id="ni-a-val">"yes"</span>  <span class="cm"># Male?</span></span><span class="codeline" data-l="2">b = <span class="str" id="ni-b-val">"yes"</span>  <span class="cm"># Good?</span></span><span class="codeline" data-l="3"><span class="kw">if</span> a == <span class="str">"yes"</span>:</span><span class="codeline" data-l="4">    <span class="kw">if</span> b == <span class="str">"yes"</span>:</span><span class="codeline" data-l="5">        <span class="fn">print</span>(<span class="str">"Chota Bheem"</span>)</span><span class="codeline" data-l="6">    <span class="kw">else</span>:</span><span class="codeline" data-l="7">        <span class="fn">print</span>(<span class="str">"Kaliya"</span>)</span><span class="codeline" data-l="8"><span class="kw">else</span>:</span><span class="codeline" data-l="9">    <span class="fn">print</span>(<span class="str">"Chutki"</span>)</span></pre>
+    </div>
+    <div class="card">
+      <h3>Your Input</h3>
+      <div class="controls">
+        <label>Male?</label>
+        <select id="ni-a"><option>yes</option><option>no</option></select>
+      </div>
+      <div class="controls">
+        <label>Good?</label>
+        <select id="ni-b"><option>yes</option><option>no</option></select>
+      </div>
+      <div class="controls">
+        <button class="btn go" onclick="NI.start()">▶ Auto</button>
+        <button class="btn alt" onclick="NI.step()">Step</button>
+        <button class="btn" onclick="NI.reset()">Reset</button>
+      </div>
+      <div class="status" id="status-ni">Ready.</div>
+      <h3 style="margin-top:10px;">Output</h3>
+      <div class="output" id="out-ni"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// tabs
+document.querySelectorAll('.tab').forEach(t=>{
+  t.addEventListener('click',()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById('panel-'+t.dataset.tab).classList.add('active');
+  });
+});
+
+// helpers
+function activate(svgId,nodeId){const svg=document.getElementById(svgId); svg.querySelectorAll('.node').forEach(n=>n.classList.remove('active')); if(nodeId){const e=document.getElementById(nodeId); if(e)e.classList.add('active');}}
+function markDone(nodeId){const el=document.getElementById(nodeId); if(el){el.classList.remove('active');el.classList.add('done');}}
+function clearDiag(svgId){document.getElementById(svgId).querySelectorAll('.node').forEach(n=>n.classList.remove('done','active'));document.getElementById(svgId).querySelectorAll('.edge').forEach(e=>e.classList.remove('active'));}
+function activateEdge(svgId,edgeId){const svg=document.getElementById(svgId); svg.querySelectorAll('.edge').forEach(e=>e.classList.remove('active')); if(edgeId){const e=document.getElementById(edgeId); if(e)e.classList.add('active');}}
+function setVars(id,obj){const c=document.getElementById(id); c.innerHTML=''; for(const[k,v]of Object.entries(obj))c.innerHTML+=`<div class="var-box"><div class="name">${k}</div><div class="val">${v}</div></div>`;}
+function setStatus(id,txt,cls){const s=document.getElementById(id); s.className='status'+(cls?' '+cls:''); s.innerHTML=txt;}
+function highlightLine(codeId,line){const pre=document.getElementById(codeId); pre.querySelectorAll('.codeline').forEach(l=>l.classList.toggle('hl', Number(l.dataset.l)===line));}
+
+function renderTrace(id, steps, idx){
+  const c=document.getElementById(id); c.innerHTML='';
+  steps.forEach((s,i)=>{
+    const cls = i<idx ? 'done' : (i===idx ? 'active' : '');
+    c.innerHTML += `<div class="trace-step ${cls}"><span class="num">${i+1}</span>${s}</div>`;
+  });
+}
+
+// parse Python-ish literal
+function pyParse(raw){
+  const s=String(raw).trim();
+  if(s==='True')return {v:true,t:'bool'};
+  if(s==='False')return {v:false,t:'bool'};
+  if(s==='None')return {v:null,t:'NoneType'};
+  if((s.startsWith('"')&&s.endsWith('"'))||(s.startsWith("'")&&s.endsWith("'")))return {v:s.slice(1,-1),t:'str'};
+  if(/^-?\d+$/.test(s))return {v:parseInt(s),t:'int'};
+  if(/^-?\d*\.\d+$/.test(s))return {v:parseFloat(s),t:'float'};
+  return {err:'cannot parse: '+raw};
+}
+
+// ================ ARITHMETIC ================
+const Arith = (() => {
+  let steps,idx,timer,done,result;
+  function reset(){
+    clearInterval(timer); timer=null;
+    const ra=document.getElementById('a-in-a').value;
+    const rb=document.getElementById('a-in-b').value;
+    const op=document.getElementById('a-in-op').value;
+    document.getElementById('a-a').textContent=ra;
+    document.getElementById('a-b').textContent=rb;
+    document.getElementById('a-op').textContent=op;
+    document.querySelectorAll('#arith-tbl tr').forEach(tr=>tr.classList.toggle('hl',tr.dataset.op===op));
+    const a=pyParse(ra), b=pyParse(rb);
+    steps=[]; idx=-1; done=false; result=null;
+    if(a.err||b.err){steps=['❌ parse error']; renderTrace('a-trace',steps,0); show('?','—','err'); return;}
+    steps.push(`Parse <b>a</b> = ${ra} → <span style="color:#06d6a0">${a.t}</span>`);
+    steps.push(`Parse <b>b</b> = ${rb} → <span style="color:#06d6a0">${b.t}</span>`);
+    // compute
+    const av=a.v, bv=b.v, at=a.t, bt=b.t;
+    const numA=at==='bool'?(av?1:0):av, numB=bt==='bool'?(bv?1:0):bv;
+    let r, err=null, outType;
+    const strPair = at==='str' && bt==='str';
+    const strNum = (at==='str') !== (bt==='str');
+    if(at==='bool'||bt==='bool') steps.push(`Coerce bool → int (True→1, False→0)`);
+    if(op==='+'){
+      steps.push(`Apply <b>+</b>`);
+      if(strPair){r=av+bv; outType='str';}
+      else if(strNum){err=`TypeError: can't add ${at}+${bt}`;}
+      else {r=numA+numB; outType=(at==='float'||bt==='float')?'float':'int';}
+    } else if(op==='-'){
+      steps.push(`Apply <b>-</b>`);
+      if(at==='str'||bt==='str')err='TypeError: subtraction not allowed on str';
+      else {r=numA-numB; outType=(at==='float'||bt==='float')?'float':'int';}
+    } else if(op==='*'){
+      steps.push(`Apply <b>*</b>`);
+      if(at==='str'&&bt==='int'){r=av.repeat(bv); outType='str'; steps.push('str × int = repeated str');}
+      else if(bt==='str'&&at==='int'){r=bv.repeat(av); outType='str'; steps.push('int × str = repeated str');}
+      else if(at==='str'||bt==='str')err='TypeError';
+      else {r=numA*numB; outType=(at==='float'||bt==='float')?'float':'int';}
+    } else if(op==='/'){
+      steps.push(`Apply <b>/</b> (always float)`);
+      if(at==='str'||bt==='str')err='TypeError';
+      else if(numB===0)err='ZeroDivisionError';
+      else {r=numA/numB; outType='float';}
+    } else if(op==='%'){
+      steps.push(`Apply <b>%</b> (remainder)`);
+      if(at==='str'||bt==='str')err='TypeError';
+      else if(numB===0)err='ZeroDivisionError';
+      else {r=numA-Math.floor(numA/numB)*numB; outType=(at==='float'||bt==='float')?'float':'int';}
+    } else if(op==='//'){
+      steps.push(`Apply <b>//</b> (floor division)`);
+      if(at==='str'||bt==='str')err='TypeError';
+      else if(numB===0)err='ZeroDivisionError';
+      else {r=Math.floor(numA/numB); steps.push(`floor(${numA}/${numB}) = floor(${(numA/numB).toFixed(4)}) = ${r}`); outType=(at==='float'||bt==='float')?'float':'int';}
+    } else if(op==='**'){
+      steps.push(`Apply <b>**</b> (power)`);
+      if(at==='str'||bt==='str')err='TypeError';
+      else {r=Math.pow(numA,numB); outType=(at==='float'||bt==='float')?'float':'int';}
+    }
+    if(err){steps.push(`❌ ${err}`); result={err,outType:'—'};}
+    else {
+      steps.push(`Result = <b>${typeof r==='string'?`"${r}"`:r}</b> <span style="color:#8b9fb3">(${outType})</span>`);
+      result={r,outType,err:null};
+    }
+    renderTrace('a-trace',steps,-1);
+    show('—','','');
+    setStatus('a-status','Press Step or Auto.');
+  }
+  function step(){
+    if(done)return;
+    idx++;
+    if(idx>=steps.length){finish(); return;}
+    renderTrace('a-trace',steps,idx);
+  }
+  function finish(){
+    done=true; clearInterval(timer);
+    renderTrace('a-trace',steps,steps.length);
+    if(result.err) show('ERROR',result.err,'err');
+    else {
+      const disp = typeof result.r==='string'?`"${result.r}"`:String(result.r);
+      show(disp,result.outType,'');
+    }
+  }
+  function show(v,t,cls){document.getElementById('a-big').className='big-result '+cls; document.getElementById('a-val').textContent=v; document.getElementById('a-type').textContent=t;}
+  function start(){reset(); timer=setInterval(()=>{if(done){clearInterval(timer);return;} step();},600);}
+  function set(a,op,b){document.getElementById('a-in-a').value=a; document.getElementById('a-in-op').value=op; document.getElementById('a-in-b').value=b; start();}
+  return {reset,step,start,set};
+})();
+Arith.reset();
+
+// ================ COMPARISON ================
+const Comp = (() => {
+  let steps,idx,timer,done,result;
+  function reset(){
+    clearInterval(timer); timer=null;
+    const ra=document.getElementById('c-in-a').value;
+    const rb=document.getElementById('c-in-b').value;
+    const op=document.getElementById('c-in-op').value;
+    document.getElementById('c-a').textContent=ra;
+    document.getElementById('c-b').textContent=rb;
+    document.getElementById('c-op').textContent=op;
+    const a=pyParse(ra), b=pyParse(rb);
+    steps=[]; idx=-1; done=false; result=null;
+    if(a.err||b.err){steps=['❌ parse error']; show('?','err'); return;}
+    steps.push(`Parse <b>a</b> = ${ra} → <span style="color:#06d6a0">${a.t}</span>`);
+    steps.push(`Parse <b>b</b> = ${rb} → <span style="color:#06d6a0">${b.t}</span>`);
+    const av=a.v, bv=b.v, at=a.t, bt=b.t;
+    const numericLike = t => t==='int'||t==='float'||t==='bool';
+    const coerce = (v,t) => t==='bool'?(v?1:0):v;
+    let r, err=null;
+    if(op==='=='||op==='!='){
+      if(numericLike(at)&&numericLike(bt)){
+        if(at==='bool'||bt==='bool') steps.push('Coerce bool → int');
+        if((at==='int'&&bt==='float')||(at==='float'&&bt==='int')) steps.push('Coerce int → float');
+        steps.push(`Compare numerically: ${coerce(av,at)} ${op} ${coerce(bv,bt)}`);
+        r = coerce(av,at)===coerce(bv,bt);
+      } else if(at===bt){
+        steps.push(`Same type (${at}) — direct comparison`);
+        r = av===bv;
+      } else if(at==='NoneType'||bt==='NoneType'){
+        steps.push('None compared with non-None → always False');
+        r=false;
+      } else {
+        steps.push(`Types differ (${at} vs ${bt}) — no auto conversion`);
+        r=false;
+      }
+      if(op==='!='){steps.push('Flip result (!=)'); r=!r;}
+    } else {
+      if(numericLike(at)&&numericLike(bt)){
+        steps.push('Compare numerically');
+        const x=coerce(av,at), y=coerce(bv,bt);
+        if(op==='<')r=x<y; else if(op==='>')r=x>y; else if(op==='<=')r=x<=y; else r=x>=y;
+        steps.push(`${x} ${op} ${y}`);
+      } else if(at==='str'&&bt==='str'){
+        steps.push('Compare strings lexicographically');
+        if(op==='<')r=av<bv; else if(op==='>')r=av>bv; else if(op==='<=')r=av<=bv; else r=av>=bv;
+      } else {
+        err=`TypeError: cannot compare ${at} and ${bt}`;
+      }
+    }
+    if(err)steps.push(`❌ ${err}`);
+    else steps.push(`Result = <b>${r?'True':'False'}</b> <span style="color:#8b9fb3">(bool)</span>`);
+    result={r,err};
+    renderTrace('c-trace',steps,-1);
+    show('—','');
+    setStatus('c-status','Press Step or Auto.');
+  }
+  function step(){if(done)return; idx++; if(idx>=steps.length){finish();return;} renderTrace('c-trace',steps,idx);}
+  function finish(){done=true; clearInterval(timer); renderTrace('c-trace',steps,steps.length); if(result.err)show('ERROR','err'); else show(result.r?'True':'False', result.r?'tru':'fls');}
+  function show(v,cls){document.getElementById('c-big').className='big-result '+cls; document.getElementById('c-val').textContent=v;}
+  function start(){reset(); timer=setInterval(()=>{if(done){clearInterval(timer);return;} step();},600);}
+  function set(a,op,b){document.getElementById('c-in-a').value=a; document.getElementById('c-in-op').value=op; document.getElementById('c-in-b').value=b; start();}
+  return {reset,step,start,set};
+})();
+Comp.reset();
+
+// ================ LOGICAL ================
+const Logic = (() => {
+  let steps,idx,timer,done,result;
+  function reset(){
+    clearInterval(timer); timer=null;
+    const x=document.getElementById('l-in-x').value==='True';
+    const y=document.getElementById('l-in-y').value==='True';
+    const op=document.getElementById('l-in-op').value;
+    document.getElementById('l-x').textContent=x?'True':'False';
+    document.getElementById('l-y').textContent=y?'True':'False';
+    document.getElementById('l-op').textContent=op;
+    steps=[]; idx=-1; done=false;
+    steps.push(`Read x = <b>${x?'True':'False'}</b>`);
+    steps.push(`Read y = <b>${y?'True':'False'}</b>`);
+    if(op==='and'){
+      steps.push(`AND: both must be True`);
+      if(!x)steps.push('x is False → short-circuit: result is False');
+      else steps.push('x is True → check y');
+    } else {
+      steps.push(`OR: at least one must be True`);
+      if(x)steps.push('x is True → short-circuit: result is True');
+      else steps.push('x is False → check y');
+    }
+    const r = op==='and'?(x&&y):(x||y);
+    steps.push(`Result = <b>${r?'True':'False'}</b>`);
+    result=r;
+    // truth table hl
+    const key = (x?'T':'F')+(y?'T':'F');
+    document.querySelectorAll('#truth-and .cell, #truth-or .cell').forEach(c=>c.classList.remove('hl'));
+    document.querySelectorAll('#truth-'+op+' .cell').forEach(c=>{if(c.dataset.xy===key)c.classList.add('hl');});
+    renderTrace('l-trace',steps,-1);
+    show('—','');
+    setStatus('l-status','Press Step or Auto.');
+  }
+  function step(){if(done)return; idx++; if(idx>=steps.length){finish();return;} renderTrace('l-trace',steps,idx);}
+  function finish(){done=true; clearInterval(timer); renderTrace('l-trace',steps,steps.length); show(result?'True':'False', result?'tru':'fls');}
+  function show(v,cls){document.getElementById('l-big').className='big-result '+cls; document.getElementById('l-val').textContent=v;}
+  function start(){reset(); timer=setInterval(()=>{if(done){clearInterval(timer);return;} step();},550);}
+  function notRun(){const x=document.getElementById('l-not-x').value==='True'; document.getElementById('l-not-val').textContent=(!x)?'True':'False';}
+  function combo(){document.getElementById('l-in-x').value='True'; document.getElementById('l-in-op').value='and'; document.getElementById('l-in-y').value='True'; start();}
+  return {reset,step,start,notRun,combo};
+})();
+Logic.reset(); Logic.notRun();
+
+// ================ IF/ELSE ================
+const IE = (() => {
+  let a,thr,cmp,ifmsg,elsemsg,stage,timer,done,out,branch;
+  const cmpSym={lt:'<',le:'<=',gt:'>',ge:'>=',eq:'==',ne:'!='};
+  const cmpFn ={lt:(a,b)=>a<b,le:(a,b)=>a<=b,gt:(a,b)=>a>b,ge:(a,b)=>a>=b,eq:(a,b)=>a===b,ne:(a,b)=>a!==b};
+  function reset(){
+    clearInterval(timer); timer=null;
+    a=parseInt(document.getElementById('ie-a').value); if(isNaN(a))a=15;
+    thr=parseInt(document.getElementById('ie-thr').value); if(isNaN(thr))thr=18;
+    cmp=document.getElementById('ie-cmp').value;
+    ifmsg=document.getElementById('ie-ifmsg').value||'minor';
+    elsemsg=document.getElementById('ie-elsemsg').value||'adult';
+    document.getElementById('ie-a-val').textContent=a;
+    document.getElementById('ie-thr-val').textContent=thr;
+    document.getElementById('ie-cmp-val').textContent=cmpSym[cmp];
+    document.getElementById('ie-if-val').textContent=`"${ifmsg}"`;
+    document.getElementById('ie-else-val').textContent=`"${elsemsg}"`;
+    document.getElementById('ie-d-cond').textContent=`${a} ${cmpSym[cmp]} ${thr}`;
+    document.getElementById('ie-d-if').textContent=`print("${ifmsg}")`;
+    document.getElementById('ie-d-else').textContent=`print("${elsemsg}")`;
+    stage='start'; done=false; out=''; branch=null;
+    clearDiag('svg-ie');
+    setVars('vars-ie',{a});
+    document.getElementById('out-ie').textContent='';
+    setStatus('status-ie','Ready.');
+    highlightLine('code-ie',1);
+  }
+  function step(){
+    if(done)return;
+    if(stage==='start'){activate('svg-ie','ie-start'); activateEdge('svg-ie','ie-e1'); highlightLine('code-ie',1); stage='cond'; return;}
+    if(stage==='cond'){markDone('ie-start'); activate('svg-ie','ie-cond'); highlightLine('code-ie',2); const ok=cmpFn[cmp](a,thr); branch=ok; setStatus('status-ie',`${a} ${cmpSym[cmp]} ${thr} → ${ok}`,ok?'true':'false'); stage=ok?'if':'else'; return;}
+    if(stage==='if'){activateEdge('svg-ie','ie-e2'); activate('svg-ie','ie-if'); highlightLine('code-ie',3); out=ifmsg+'\n'; document.getElementById('out-ie').textContent=out; stage='after'; return;}
+    if(stage==='else'){activateEdge('svg-ie','ie-e3'); activate('svg-ie','ie-else'); highlightLine('code-ie',5); out=elsemsg+'\n'; document.getElementById('out-ie').textContent=out; stage='after'; return;}
+    if(stage==='after'){activateEdge('svg-ie', branch?'ie-e4':'ie-e5'); activate('svg-ie','ie-after'); highlightLine('code-ie',6); out+='done\n'; document.getElementById('out-ie').textContent=out; stage='end'; return;}
+    if(stage==='end'){activateEdge('svg-ie','ie-e6'); activate('svg-ie','ie-end'); setStatus('status-ie','END','false'); done=true; clearInterval(timer);}
+  }
+  function start(){reset(); timer=setInterval(()=>{step(); if(done)clearInterval(timer);},700);}
+  return {reset,step,start};
+})();
+IE.reset();
+
+// ================ ELIF ================
+const EL = (() => {
+  let w,stage,timer,done,out,matched;
+  function reset(){
+    clearInterval(timer); timer=null;
+    w=document.getElementById('el-in').value;
+    document.getElementById('el-in-val').textContent=`"${w}"`;
+    stage='start'; done=false; out=''; matched=null;
+    clearDiag('svg-el');
+    document.getElementById('out-el').textContent='';
+    setStatus('status-el','Ready. weather = "'+w+'"');
+    highlightLine('code-el',1);
+  }
+  function step(){
+    if(done)return;
+    if(stage==='start'){activate('svg-el','el-start'); activateEdge('svg-el','el-e1'); stage='c1'; return;}
+    if(stage==='c1'){markDone('el-start'); activate('svg-el','el-c1'); highlightLine('code-el',2); const m=w==='Sunny'; setStatus('status-el',`=="Sunny"? → ${m}`,m?'true':'false'); if(m){activateEdge('svg-el','el-t1'); stage='a1';} else {activateEdge('svg-el','el-f1'); stage='c2';} return;}
+    if(stage==='a1'){activate('svg-el','el-a1'); highlightLine('code-el',3); out+='Take Googles\n'; document.getElementById('out-el').textContent=out; matched='r1'; stage='after'; return;}
+    if(stage==='c2'){markDone('el-c1'); activate('svg-el','el-c2'); highlightLine('code-el',4); const m=w==='Rainy'; setStatus('status-el',`=="Rainy"? → ${m}`,m?'true':'false'); if(m){activateEdge('svg-el','el-t2'); stage='a2';} else {activateEdge('svg-el','el-f2'); stage='c3';} return;}
+    if(stage==='a2'){activate('svg-el','el-a2'); highlightLine('code-el',5); out+='Take Umbrella\n'; document.getElementById('out-el').textContent=out; matched='r2'; stage='after'; return;}
+    if(stage==='c3'){markDone('el-c2'); activate('svg-el','el-c3'); highlightLine('code-el',6); const m=w==='Snowy'; setStatus('status-el',`=="Snowy"? → ${m}`,m?'true':'false'); if(m){activateEdge('svg-el','el-t3'); stage='a3';} else {activateEdge('svg-el','el-f3'); stage='a4';} return;}
+    if(stage==='a3'){activate('svg-el','el-a3'); highlightLine('code-el',7); out+='wear boots\n'; document.getElementById('out-el').textContent=out; matched='r3'; stage='after'; return;}
+    if(stage==='a4'){activate('svg-el','el-a4'); highlightLine('code-el',9); out+='I dont know this weather\n'; document.getElementById('out-el').textContent=out; matched='r4'; stage='after'; return;}
+    if(stage==='after'){activateEdge('svg-el','el-'+matched); activate('svg-el','el-after'); highlightLine('code-el',10); out+='normal execution\n'; document.getElementById('out-el').textContent=out; stage='end'; return;}
+    if(stage==='end'){setStatus('status-el','END','false'); done=true; clearInterval(timer);}
+  }
+  function start(){reset(); timer=setInterval(()=>{step(); if(done)clearInterval(timer);},650);}
+  return {reset,step,start};
+})();
+EL.reset();
+
+// ================ GRADE ================
+const G = (() => {
+  let m,stage,timer,done,out,matched;
+  function reset(){
+    clearInterval(timer); timer=null;
+    m=parseInt(document.getElementById('g-m').value); if(isNaN(m))m=85;
+    document.getElementById('g-m-val').textContent=m;
+    stage='start'; done=false; out=''; matched=null;
+    clearDiag('svg-g');
+    document.getElementById('out-g').textContent='';
+    setStatus('status-g','Ready. marks = '+m);
+    highlightLine('code-g',1);
+  }
+  function step(){
+    if(done)return;
+    if(stage==='start'){activate('svg-g','g-start'); activateEdge('svg-g','g-e0'); stage='c1'; return;}
+    if(stage==='c1'){markDone('g-start'); activate('svg-g','g-c1'); highlightLine('code-g',2); const ok=m>90&&m<=100; setStatus('status-g',`90&lt;${m}≤100? → ${ok}`,ok?'true':'false'); if(ok){activateEdge('svg-g','g-t1'); stage='a1';} else {activateEdge('svg-g','g-f1'); stage='c2';} return;}
+    if(stage==='a1'){activate('svg-g','g-a1'); highlightLine('code-g',3); out='Grade: A\n'; document.getElementById('out-g').textContent=out; matched='r1'; stage='end'; return;}
+    if(stage==='c2'){markDone('g-c1'); activate('svg-g','g-c2'); highlightLine('code-g',4); const ok=m>80&&m<=90; setStatus('status-g',`80&lt;${m}≤90? → ${ok}`,ok?'true':'false'); if(ok){activateEdge('svg-g','g-t2'); stage='a2';} else {activateEdge('svg-g','g-f2'); stage='c3';} return;}
+    if(stage==='a2'){activate('svg-g','g-a2'); highlightLine('code-g',5); out='Grade: B\n'; document.getElementById('out-g').textContent=out; matched='r2'; stage='end'; return;}
+    if(stage==='c3'){markDone('g-c2'); activate('svg-g','g-c3'); highlightLine('code-g',6); const ok=m>70&&m<=80; setStatus('status-g',`70&lt;${m}≤80? → ${ok}`,ok?'true':'false'); if(ok){activateEdge('svg-g','g-t3'); stage='a3';} else {activateEdge('svg-g','g-f3'); stage='c4';} return;}
+    if(stage==='a3'){activate('svg-g','g-a3'); highlightLine('code-g',7); out='Grade: C\n'; document.getElementById('out-g').textContent=out; matched='r3'; stage='end'; return;}
+    if(stage==='c4'){markDone('g-c3'); activate('svg-g','g-c4'); highlightLine('code-g',8); const ok=m>=0&&m<=70; setStatus('status-g',`0≤${m}≤70? → ${ok}`,ok?'true':'false'); if(ok){activateEdge('svg-g','g-t4'); stage='a4';} else {activateEdge('svg-g','g-f4'); stage='inv';} return;}
+    if(stage==='a4'){activate('svg-g','g-a4'); highlightLine('code-g',9); out='Grade: D\n'; document.getElementById('out-g').textContent=out; matched='r4'; stage='end'; return;}
+    if(stage==='inv'){activate('svg-g','g-inv'); highlightLine('code-g',11); out='Invalid marks\n'; document.getElementById('out-g').textContent=out; matched='r5'; stage='end'; return;}
+    if(stage==='end'){activateEdge('svg-g','g-'+matched); activate('svg-g','g-end'); setStatus('status-g','Done.','false'); done=true; clearInterval(timer);}
+  }
+  function start(){reset(); timer=setInterval(()=>{step(); if(done)clearInterval(timer);},600);}
+  function preset(v){document.getElementById('g-m').value=v; start();}
+  return {reset,step,start,preset};
+})();
+G.reset();
+
+// ================ FIZZBUZZ ================
+const FZ = (() => {
+  let a,d1,d2,stage,timer,done,out,matched;
+  function reset(){
+    clearInterval(timer); timer=null;
+    a=parseInt(document.getElementById('fz-a').value); if(isNaN(a))a=15;
+    d1=parseInt(document.getElementById('fz-d1').value)||3;
+    d2=parseInt(document.getElementById('fz-d2').value)||5;
+    document.getElementById('fz-a-val').textContent=a;
+    ['fz-d1-val','fz-d1b-val'].forEach(id=>document.getElementById(id).textContent=d1);
+    ['fz-d2-val','fz-d2b-val'].forEach(id=>document.getElementById(id).textContent=d2);
+    stage='start'; done=false; out=''; matched=null;
+    clearDiag('svg-fz');
+    document.getElementById('out-fz').textContent='';
+    setStatus('status-fz','Ready. a = '+a);
+    highlightLine('code-fz',1);
+  }
+  function step(){
+    if(done)return;
+    if(stage==='start'){activate('svg-fz','fz-start'); activateEdge('svg-fz','fz-e0'); stage='c1'; return;}
+    if(stage==='c1'){markDone('fz-start'); activate('svg-fz','fz-c1'); highlightLine('code-fz',2); const ok=a%d1===0&&a%d2===0; setStatus('status-fz',`${a}%${d1}==0 and ${a}%${d2}==0? → ${ok}`,ok?'true':'false'); if(ok){activateEdge('svg-fz','fz-t1'); stage='fb';} else {activateEdge('svg-fz','fz-f1'); stage='c2';} return;}
+    if(stage==='fb'){activate('svg-fz','fz-fb'); highlightLine('code-fz',3); out='Fizz-Buzz\n'; document.getElementById('out-fz').textContent=out; matched='r1'; stage='end'; return;}
+    if(stage==='c2'){markDone('fz-c1'); activate('svg-fz','fz-c2'); highlightLine('code-fz',4); const ok=a%d1===0; setStatus('status-fz',`${a}%${d1}==0? → ${ok}`,ok?'true':'false'); if(ok){activateEdge('svg-fz','fz-t2'); stage='f';} else {activateEdge('svg-fz','fz-f2'); stage='c3';} return;}
+    if(stage==='f'){activate('svg-fz','fz-f'); highlightLine('code-fz',5); out='Fizz\n'; document.getElementById('out-fz').textContent=out; matched='r2'; stage='end'; return;}
+    if(stage==='c3'){markDone('fz-c2'); activate('svg-fz','fz-c3'); highlightLine('code-fz',6); const ok=a%d2===0; setStatus('status-fz',`${a}%${d2}==0? → ${ok}`,ok?'true':'false'); if(ok){activateEdge('svg-fz','fz-t3'); stage='b';} else {activateEdge('svg-fz','fz-f3'); stage='none';} return;}
+    if(stage==='b'){activate('svg-fz','fz-b'); highlightLine('code-fz',7); out='Buzz\n'; document.getElementById('out-fz').textContent=out; matched='r3'; stage='end'; return;}
+    if(stage==='none'){activate('svg-fz','fz-none'); setStatus('status-fz','No branch matched — nothing printed','false'); matched='r4'; stage='end'; return;}
+    if(stage==='end'){activateEdge('svg-fz','fz-'+matched); activate('svg-fz','fz-end'); done=true; clearInterval(timer);}
+  }
+  function start(){reset(); timer=setInterval(()=>{step(); if(done)clearInterval(timer);},600);}
+  function preset(v){document.getElementById('fz-a').value=v; start();}
+  return {reset,step,start,preset};
+})();
+FZ.reset();
+
+// ================ NESTED IF ================
+const NI = (() => {
+  let a,b,stage,timer,done,out,matched;
+  function reset(){
+    clearInterval(timer); timer=null;
+    a=document.getElementById('ni-a').value;
+    b=document.getElementById('ni-b').value;
+    document.getElementById('ni-a-val').textContent=`"${a}"`;
+    document.getElementById('ni-b-val').textContent=`"${b}"`;
+    stage='start'; done=false; out=''; matched=null;
+    clearDiag('svg-ni');
+    document.getElementById('out-ni').textContent='';
+    setStatus('status-ni','Ready.');
+    highlightLine('code-ni',1);
+  }
+  function step(){
+    if(done)return;
+    if(stage==='start'){activate('svg-ni','ni-start'); activateEdge('svg-ni','ni-e0'); stage='c1'; return;}
+    if(stage==='c1'){markDone('ni-start'); activate('svg-ni','ni-c1'); highlightLine('code-ni',3); const ok=a==='yes'; setStatus('status-ni',`Male? → ${ok}`,ok?'true':'false'); if(ok){activateEdge('svg-ni','ni-e1'); stage='c2';} else {activateEdge('svg-ni','ni-e2'); stage='a3';} return;}
+    if(stage==='c2'){markDone('ni-c1'); activate('svg-ni','ni-c2'); highlightLine('code-ni',4); const ok=b==='yes'; setStatus('status-ni',`Good? → ${ok}`,ok?'true':'false'); if(ok){activateEdge('svg-ni','ni-e3'); stage='a1';} else {activateEdge('svg-ni','ni-e4'); stage='a2';} return;}
+    if(stage==='a1'){activate('svg-ni','ni-a1'); highlightLine('code-ni',5); out='Chota Bheem\n'; document.getElementById('out-ni').textContent=out; matched='r1'; stage='end'; return;}
+    if(stage==='a2'){activate('svg-ni','ni-a2'); highlightLine('code-ni',7); out='Kaliya\n'; document.getElementById('out-ni').textContent=out; matched='r2'; stage='end'; return;}
+    if(stage==='a3'){activate('svg-ni','ni-a3'); highlightLine('code-ni',9); out='Chutki\n'; document.getElementById('out-ni').textContent=out; matched='r3'; stage='end'; return;}
+    if(stage==='end'){activateEdge('svg-ni','ni-'+matched); activate('svg-ni','ni-end'); setStatus('status-ni','Done.','false'); done=true; clearInterval(timer);}
+  }
+  function start(){reset(); timer=setInterval(()=>{step(); if(done)clearInterval(timer);},700);}
+  return {reset,step,start};
+})();
+NI.reset();
+</script>
+</body>
+</html>
