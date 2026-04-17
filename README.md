@@ -1,1 +1,1 @@
-https://raj-scaler.github.io/python-operator-simulation/
+https://scaler00.github.io/python-operator-simulation/
